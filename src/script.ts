@@ -20,6 +20,8 @@
   w['<%= options.globalName %>'] = {
     preference,
     value,
+    // @ts-ignore
+    disableTransition: '<% options.disableTransition %>' === 'true',
     getColorScheme,
     addColorScheme,
     removeColorScheme

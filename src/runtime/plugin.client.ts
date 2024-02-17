@@ -8,6 +8,7 @@ import { globalName, storageKey, dataValue } from '#color-mode-options'
 const helper = (window[globalName] || {}) as unknown as {
   preference: string
   value: string
+  disableTransition: boolean
   getColorScheme: () => string
   addColorScheme: (className: string) => void
   removeColorScheme: (className: string) => void
@@ -88,8 +89,23 @@ export default defineNuxtPlugin((nuxtApp) => {
   }, { immediate: true })
 
   watch(() => colorMode.value, (newValue, oldValue) => {
+    let style: HTMLStyleElement | undefined
+    if (helper.disableTransition) {
+      style = window!.document.createElement('style')
+      const styleString = '*,*::before,*::after{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}'
+      style.appendChild(document.createTextNode(styleString))
+      window!.document.head.appendChild(style)
+    }
+
     helper.removeColorScheme(oldValue)
     helper.addColorScheme(newValue)
+
+    if (helper.disableTransition) {
+      // Calling getComputedStyle forces the browser to redraw
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _ = window!.getComputedStyle(style!).opacity
+      document.head.removeChild(style!)
+    }
   })
 
   if (colorMode.preference === 'system') {
